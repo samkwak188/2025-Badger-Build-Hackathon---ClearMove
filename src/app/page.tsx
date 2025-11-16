@@ -12,7 +12,12 @@ type ChecklistPhoto = {
   phase: Phase;
   kind: "image" | "video";
   dataUrl: string;
-  addedAt: string;
+  addedAt: string; // ISO timestamp
+  /**
+   * Human-friendly label (what the UI shows) captured at the time the photo was taken.
+   * This is used both in the interface and when rendering the PDF so they always match.
+   */
+  capturedLabel?: string;
 };
 
 type ChecklistItem = {
@@ -372,7 +377,9 @@ export default function Home() {
         }
 
         const label =
-          photo.addedAt && photo.addedAt.trim().length > 0
+          photo.capturedLabel && photo.capturedLabel.trim().length > 0
+            ? photo.capturedLabel
+            : photo.addedAt && photo.addedAt.trim().length > 0
             ? formatDateTimeLabel(photo.addedAt)
             : "Capture time unavailable";
 
@@ -649,12 +656,16 @@ export default function Home() {
       // For videos, keep the original data URL.
       const dataUrl = await fileToDataUrl(file, kind === "image");
 
+      const addedAt = new Date().toISOString();
+      const capturedLabel = formatDateTimeLabel(addedAt);
+
       photos.push({
         id: createId(),
         phase,
         kind,
         dataUrl,
-        addedAt: new Date().toISOString(),
+        addedAt,
+        capturedLabel,
       });
     }
 
@@ -825,8 +836,8 @@ export default function Home() {
                     <p className="mt-1 text-xs text-slate-600 md:text-sm">
                       Take a clear photo of the checklist you received from your
                       landlord or building manager.
-                    </p>
-                  </div>
+          </p>
+        </div>
                   <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-medium text-white hover:bg-slate-800 sm:flex-shrink-0">
                     <span>{isParsing ? "Reading..." : "Choose photo"}</span>
                     <input
@@ -1086,9 +1097,10 @@ export default function Home() {
                                               />
                                             )}
                                             <figcaption className="px-1 pb-1 text-[9px] text-slate-500">
-                                              {formatDateTimeLabel(
-                                                photo.addedAt
-                                              )}
+                                              {photo.capturedLabel ??
+                                                formatDateTimeLabel(
+                                                  photo.addedAt
+                                                )}
                                             </figcaption>
                                             {isWithinMoveInEditWindow && (
                                               <button
@@ -1119,7 +1131,7 @@ export default function Home() {
                                             )}
                                           </figure>
                                         ))}
-                                      </div>
+        </div>
                                     )}
                                   </div>
                                   {/* Move-out */}
@@ -1186,9 +1198,10 @@ export default function Home() {
                                           />
                                         )}
                                             <figcaption className="px-1 pb-1 text-[9px] text-slate-500">
-                                              {formatDateTimeLabel(
-                                                photo.addedAt
-                                              )}
+                                              {photo.capturedLabel ??
+                                                formatDateTimeLabel(
+                                                  photo.addedAt
+                                                )}
                                             </figcaption>
                                             {isWithinMoveOutWindow && (
                                               <button
@@ -1344,7 +1357,8 @@ export default function Home() {
                                           />
                                         )}
                                         <figcaption className="px-1 pb-1 text-[9px] text-slate-500">
-                                          {formatDateTimeLabel(photo.addedAt)}
+                                          {photo.capturedLabel ??
+                                            formatDateTimeLabel(photo.addedAt)}
                                         </figcaption>
                                         {isWithinMoveInEditWindow && (
                                           <button
@@ -1442,7 +1456,8 @@ export default function Home() {
                                           />
                                         )}
                                         <figcaption className="px-1 pb-1 text-[9px] text-slate-500">
-                                          {formatDateTimeLabel(photo.addedAt)}
+                                          {photo.capturedLabel ??
+                                            formatDateTimeLabel(photo.addedAt)}
                                         </figcaption>
                                         {isWithinMoveOutWindow && (
                                           <button
