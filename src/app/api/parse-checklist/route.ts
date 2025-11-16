@@ -18,12 +18,15 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
     const base64Image = buffer.toString('base64');
 
-    // Get API key from config (checks both hardcoded value and env variable)
+    // Get API key from config (checks env variable via getGeminiApiKey)
     const apiKey = getGeminiApiKey();
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'No API key configured. Please add your key to src/config.ts' },
+        {
+          error:
+            'No API key configured. Please set GOOGLE_GEMINI_API_KEY in your .env.local (for local dev) or in your hosting environment variables.',
+        },
         { status: 400 }
       );
     }

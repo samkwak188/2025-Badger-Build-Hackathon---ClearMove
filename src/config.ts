@@ -1,25 +1,21 @@
 /**
- * Configuration file for Ultimate Rent Consultant
- * 
- * For hackathon demo: You can hardcode your API key here.
- * This is simpler than using .env files for quick demos.
+ * Configuration file for ClearMove
+ *
+ * IMPORTANT:
+ * - Do NOT hardcode your real Gemini API key in this file.
+ * - Instead, set GOOGLE_GEMINI_API_KEY in a local .env file (not committed)
+ *   and in your hosting provider's environment settings (e.g. Render).
  */
 
 export const config = {
   /**
-   * Google Gemini API Key
-   * 
-   * Get your FREE API key from: https://aistudio.google.com/app/apikey
-   * 
-   * Instructions:
-   * 1. Visit https://aistudio.google.com/app/apikey
-   * 2. Sign in with your Google account
-   * 3. Click "Create API Key"
-   * 4. Copy the key and paste it below
-   * 
-   * Example: 'AIzaSyD...' (starts with AIza)
+   * Google Gemini API Key (NEVER commit the real key)
+   *
+   * Leave this empty in the repo. The actual key should come from:
+   * - .env.local (for local development)
+   * - Environment variables on your deployment platform (e.g. Render)
    */
-  GOOGLE_GEMINI_API_KEY: 'AIzaSyD_UDWCBtnuNK5PffxQSnrgIpyzLQmwmJ4', // Paste your API key here between the quotes
+  GOOGLE_GEMINI_API_KEY: "",
   
   /**
    * App Settings
@@ -38,7 +34,17 @@ export const config = {
  * Helper function to check if API key is configured
  */
 export function hasGeminiApiKey(): boolean {
-  return config.GOOGLE_GEMINI_API_KEY.trim().length > 0;
+  if (config.GOOGLE_GEMINI_API_KEY.trim().length > 0) {
+    return true;
+  }
+  if (
+    typeof process !== "undefined" &&
+    process.env?.GOOGLE_GEMINI_API_KEY &&
+    process.env.GOOGLE_GEMINI_API_KEY.trim().length > 0
+  ) {
+    return true;
+  }
+  return false;
 }
 
 /**

@@ -23,7 +23,10 @@ export async function POST(request: NextRequest) {
     const apiKey = getGeminiApiKey();
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Missing API key. Configure GOOGLE_GEMINI_API_KEY in config." },
+        {
+          error:
+            "Missing API key. Please set GOOGLE_GEMINI_API_KEY in your .env.local (for local dev) or hosting environment.",
+        },
         { status: 500 }
       );
     }
