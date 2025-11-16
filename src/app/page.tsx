@@ -383,6 +383,13 @@ export default function Home() {
             ? formatDateTimeLabel(photo.addedAt)
             : "Capture time unavailable";
 
+        console.log("📸 PDF embedding photo:", {
+          id: photo.id,
+          capturedLabel: photo.capturedLabel,
+          addedAt: photo.addedAt,
+          computedLabel: label,
+        });
+
         // 1) Embed and draw the image
         try {
           const { mimeType, bytes } = dataUrlToBytes(photo.dataUrl);
@@ -404,8 +411,9 @@ export default function Home() {
             height: imgHeight,
           });
           y -= imgHeight + 4;
+          console.log("✅ Image embedded successfully, drawing timestamp...");
         } catch (err) {
-          console.error("Failed to embed image into PDF:", err);
+          console.error("❌ Failed to embed image into PDF:", err);
           drawText("[Image could not be embedded]", 9, rgb(0.8, 0.2, 0.2));
           return; // don't try to draw a timestamp if the image failed
         }
@@ -413,8 +421,9 @@ export default function Home() {
         // 2) Draw the timestamp separately so it can't trigger the image error
         try {
           drawText(`Captured: ${label}`, 8, rgb(0.4, 0.4, 0.4));
+          console.log("✅ Timestamp drawn:", label);
         } catch (err) {
-          console.error("Failed to draw image timestamp in PDF:", err);
+          console.error("❌ Failed to draw image timestamp in PDF:", err);
         }
       };
 
