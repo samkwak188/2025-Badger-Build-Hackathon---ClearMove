@@ -1,0 +1,6 @@
+# Copy this file to .env.local to enable Google Gemini Vision parsing
+# The app works fine without this - it will use mock data for demos
+# Get your FREE API key from: https://aistudio.google.com/app/apikey
+
+GOOGLE_GEMINI_API_KEY=your-gemini-api-key-here
+

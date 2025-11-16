@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
@@ -27,7 +26,6 @@ type ChecklistState = {
   checklistImageName?: string;
   items: ChecklistItem[];
   moveInDate?: string; // ISO date string (YYYY-MM-DD)
-  moveOutDate?: string; // ISO date string (YYYY-MM-DD), used for move-out photo window
   submittedAt?: string;
 };
 
@@ -113,7 +111,6 @@ export default function Home() {
   const [state, setState] = useState<ChecklistState>({
     items: [],
     moveInDate: new Date().toISOString().slice(0, 10),
-    moveOutDate: undefined,
   });
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [lightboxMedia, setLightboxMedia] = useState<{
@@ -148,8 +145,6 @@ export default function Home() {
           saved.moveInDate && saved.moveInDate.length > 0
             ? saved.moveInDate
             : new Date().toISOString().slice(0, 10),
-        moveOutDate: saved.moveOutDate,
-        submittedAt: saved.submittedAt,
       });
       if (saved.items?.length) {
         setSelectedItemId(saved.items[0].id);
@@ -199,8 +194,7 @@ export default function Home() {
     };
   }, [state.items]);
 
-  // Move-in photo edit window: 7 days after move-in date
-  const isWithinMoveInEditWindow = useMemo(() => {
+  const isWithinPhotoEditWindow = useMemo(() => {
     if (!state.moveInDate) return true;
     const moveIn = new Date(state.moveInDate);
     if (Number.isNaN(moveIn.getTime())) return true;
@@ -210,8 +204,7 @@ export default function Home() {
     return diffDays <= 7 + 1e-6;
   }, [state.moveInDate]);
 
-  // Move-in photo edit deadline label
-  const moveInPhotoEditDeadline = useMemo(() => {
+  const photoEditDeadline = useMemo(() => {
     if (!state.moveInDate) return null;
     const d = new Date(state.moveInDate);
     if (Number.isNaN(d.getTime())) return null;
@@ -219,27 +212,7 @@ export default function Home() {
     return d;
   }, [state.moveInDate]);
 
-  // Move-out photo window: only within 7 days BEFORE the move-out / lease end date
-  const isWithinMoveOutWindow = useMemo(() => {
-    if (!state.moveOutDate) return false;
-    const moveOut = new Date(state.moveOutDate);
-    if (Number.isNaN(moveOut.getTime())) return false;
-    const now = new Date();
-    const diffMs = moveOut.getTime() - now.getTime(); // time until move-out
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
-    // Allow window only in the last 7 days before (and including) move-out date
-    return diffDays >= 0 && diffDays <= 7 + 1e-6;
-  }, [state.moveOutDate]);
-
-  const moveOutWindowStart = useMemo(() => {
-    if (!state.moveOutDate) return null;
-    const d = new Date(state.moveOutDate);
-    if (Number.isNaN(d.getTime())) return null;
-    d.setDate(d.getDate() - 7);
-    return d;
-  }, [state.moveOutDate]);
-
-  const isEditable = isWithinMoveInEditWindow;
+  const isEditable = isWithinPhotoEditWindow;
 
   async function handleSubmitReport() {
     if (!hasAnyMoveInPhoto) {
@@ -632,53 +605,32 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-4 px-4 py-6 md:gap-8 md:px-8 md:py-10">
-        <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative h-11 w-11 md:h-16 md:w-16">
-        <Image
-                src="/clearmove-logo.jpeg"
-                alt="ClearMove logo"
-                fill
-                className="rounded-lg object-contain"
-          priority
-        />
-            </div>
-            <h1 className="text-2xl font-semibold tracking-tight md:text-4xl">
-              ClearMove
-          </h1>
+        <header className="flex flex-col gap-3 md:flex-row md:items-baseline md:justify-between">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight md:text-3xl">
+              Ultimate Rent Consultant
+            </h1>
+            <p className="mt-1 text-xs text-slate-600 md:text-base">
+              Turn your paper move-in checklist into a clean digital one and
+              attach{" "}
+              <span className="font-semibold">before / after photos</span> for
+              each area.
+            </p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <div className="flex flex-col items-end gap-1 text-[11px] md:text-xs">
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-slate-700">Move-in date</span>
-                <input
-                  type="date"
-                  className="rounded-md border border-slate-300 px-2 py-1 text-[11px] text-slate-700 outline-none focus:border-slate-500 focus:ring-0"
-                  value={state.moveInDate ?? ""}
-                  onChange={(e) =>
-                    setState((prev) => ({
-                      ...prev,
-                      moveInDate: e.target.value || undefined,
-                    }))
-                  }
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-slate-700">
-                  Move-out / lease end date
-                </span>
-                <input
-                  type="date"
-                  className="rounded-md border border-slate-300 px-2 py-1 text-[11px] text-slate-700 outline-none focus:border-slate-500 focus:ring-0"
-                  value={state.moveOutDate ?? ""}
-                  onChange={(e) =>
-                    setState((prev) => ({
-                      ...prev,
-                      moveOutDate: e.target.value || undefined,
-                    }))
-                  }
-                />
-              </div>
+            <div className="flex items-center gap-2 text-[11px] md:text-xs">
+              <span className="font-medium text-slate-700">Move-in date</span>
+              <input
+                type="date"
+                className="rounded-md border border-slate-300 px-2 py-1 text-[11px] text-slate-700 outline-none focus:border-slate-500 focus:ring-0"
+                value={state.moveInDate ?? ""}
+                onChange={(e) =>
+                  setState((prev) => ({
+                    ...prev,
+                    moveInDate: e.target.value || undefined,
+                  }))
+                }
+              />
             </div>
             <button
               type="button"
@@ -719,6 +671,7 @@ export default function Home() {
         {tab === "checklist" && (
           <div className="flex flex-col gap-4 md:gap-6">
             {/* Stepper */}
+            <div className="flex flex-col gap-3 md:gap-4">
             <ol className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-slate-600 md:gap-2 md:text-sm">
               <li
                 className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 md:gap-2 md:px-3 ${
@@ -826,34 +779,19 @@ export default function Home() {
                   )}
                 </div>
                 <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
-                <p className="font-semibold">Photo windows for fairness</p>
+                <p className="font-semibold">
+                  Photo edit window for fairness
+                </p>
                 <p className="mt-0.5">
-                  <span className="font-semibold">Move-in photos</span> can be
-                  added, replaced, or deleted only within{" "}
-                  <span className="font-semibold">7 days after the move-in date</span>.{" "}
-                  <span className="font-semibold">Move-out photos</span> can be
-                  taken only during the{" "}
-                  <span className="font-semibold">
-                    7 days leading up to your move-out / lease end date
-                  </span>
-                  .
-                  {moveInPhotoEditDeadline && (
+                  Photos can be added, replaced, or deleted only within{" "}
+                  <span className="font-semibold">7 days after the move-in date</span>.
+                  After that, photo edits are locked.
+                  {photoEditDeadline && (
                     <>
                       {" "}
-                      Move-in edit deadline:{" "}
+                      Current edit deadline:{" "}
                       <span className="font-semibold">
-                        {moveInPhotoEditDeadline.toLocaleDateString()}
-                      </span>
-                      .
-                    </>
-                  )}
-                  {state.moveOutDate && moveOutWindowStart && (
-                    <>
-                      {" "}
-                      Move-out photo window:{" "}
-                      <span className="font-semibold">
-                        {moveOutWindowStart.toLocaleDateString()} –{" "}
-                        {new Date(state.moveOutDate).toLocaleDateString()}
+                        {photoEditDeadline.toLocaleDateString()}
                       </span>
                       .
                     </>
@@ -961,7 +899,7 @@ export default function Home() {
                                           Move-in
                                         </p>
                                       </div>
-                                      {isWithinMoveInEditWindow ? (
+                                      {isWithinPhotoEditWindow ? (
                                         <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-emerald-700 px-2.5 py-0.5 text-[10px] font-medium text-white hover:bg-emerald-800">
                                           Take photo / video
                                           <input
@@ -1021,7 +959,7 @@ export default function Home() {
                                                 photo.addedAt
                                               )}
                                             </figcaption>
-                                            {isWithinMoveInEditWindow && (
+                                            {isWithinPhotoEditWindow && (
                                               <button
                                                 type="button"
                                                 onClick={() => {
@@ -1061,7 +999,7 @@ export default function Home() {
                                           Move-out
                                         </p>
                                       </div>
-                                      {isWithinMoveOutWindow ? (
+                                      {isWithinPhotoEditWindow ? (
                                         <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-sky-700 px-2.5 py-0.5 text-[10px] font-medium text-white hover:bg-sky-800">
                                           Take photo / video
                                           <input
@@ -1121,7 +1059,7 @@ export default function Home() {
                                                 photo.addedAt
                                               )}
                                             </figcaption>
-                                            {isWithinMoveOutWindow && (
+                                            {isWithinPhotoEditWindow && (
                                               <button
                                                 type="button"
                                                 onClick={() => {
@@ -1219,28 +1157,18 @@ export default function Home() {
                                       Move-in
                                     </p>
                                   </div>
-                                  {isWithinMoveInEditWindow ? (
-                                    <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-emerald-700 px-2.5 py-0.5 text-[10px] font-medium text-white hover:bg-emerald-800">
-                                      Take photo / video
-                                      <input
-                                        type="file"
-                                        accept="image/*,video/*"
-                                        capture="environment"
-                                        className="hidden"
-                                        onChange={(e) =>
-                                          handleAddPhotos(
-                                            item.id,
-                                            "move-in",
-                                            e
-                                          )
-                                        }
-                                      />
-                                    </label>
-                                  ) : (
-                                    <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-[10px] font-medium text-slate-500">
-                                      Locked
-                                    </span>
-                                  )}
+                                  <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-emerald-700 px-2.5 py-0.5 text-[10px] font-medium text-white hover:bg-emerald-800">
+                                    + Photo
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      multiple
+                                      className="hidden"
+                                      onChange={(e) =>
+                                        handleAddPhotos(item.id, "move-in", e)
+                                      }
+                                    />
+                                  </label>
                                 </div>
                                 {item.moveInPhotos.length === 0 ? (
                                   <p className="text-[10px] text-slate-500">
@@ -1251,59 +1179,13 @@ export default function Home() {
                                     {item.moveInPhotos.map((photo) => (
                                       <figure
                                         key={photo.id}
-                                        className="relative overflow-hidden rounded border border-slate-200 bg-white"
+                                        className="overflow-hidden rounded border border-slate-200 bg-white"
                                       >
-                                        {photo.kind === "video" ? (
-                                          <video
-                                            src={photo.dataUrl}
-                                            className="h-12 w-full object-cover"
-                                            controls
-                                            muted
-                                          />
-                                        ) : (
-                                          <img
-                                            src={photo.dataUrl}
-                                            alt="Move-in"
-                                            className="h-12 w-full object-cover cursor-pointer"
-                                            onClick={() =>
-                                              setLightboxMedia({
-                                                url: photo.dataUrl,
-                                                kind: "image",
-                                                title: "Move-in",
-                                              })
-                                            }
-                                          />
-                                        )}
-                                        <figcaption className="px-1 pb-1 text-[9px] text-slate-500">
-                                          {formatDateTimeLabel(photo.addedAt)}
-                                        </figcaption>
-                                        {isWithinMoveInEditWindow && (
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setState((prev) => ({
-                                                ...prev,
-                                                items: prev.items.map(
-                                                  (pItem) =>
-                                                    pItem.id === item.id
-                                                      ? {
-                                                          ...pItem,
-                                                          moveInPhotos:
-                                                            pItem.moveInPhotos.filter(
-                                                              (p) =>
-                                                                p.id !==
-                                                                photo.id
-                                                            ),
-                                                        }
-                                                      : pItem
-                                                ),
-                                              }));
-                                            }}
-                                            className="absolute right-0 top-0 m-0.5 rounded-full bg-white/80 px-1 text-[9px] text-slate-600 hover:bg-red-500 hover:text-white"
-                                          >
-                                            ✕
-                                          </button>
-                                        )}
+                                        <img
+                                          src={photo.dataUrl}
+                                          alt="Move-in"
+                                          className="h-12 w-full object-cover"
+                                        />
                                       </figure>
                                     ))}
                                   </div>
@@ -1317,28 +1199,18 @@ export default function Home() {
                                       Move-out
           </p>
         </div>
-                                  {isWithinMoveOutWindow ? (
-                                    <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-sky-700 px-2.5 py-0.5 text-[10px] font-medium text-white hover:bg-sky-800">
-                                      Take photo / video
-                                      <input
-                                        type="file"
-                                        accept="image/*,video/*"
-                                        capture="environment"
-                                        className="hidden"
-                                        onChange={(e) =>
-                                          handleAddPhotos(
-                                            item.id,
-                                            "move-out",
-                                            e
-                                          )
-                                        }
-                                      />
-                                    </label>
-                                  ) : (
-                                    <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-[10px] font-medium text-slate-500">
-                                      Locked
-                                    </span>
-                                  )}
+                                  <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-sky-700 px-2.5 py-0.5 text-[10px] font-medium text-white hover:bg-sky-800">
+                                    + Photo
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      multiple
+                                      className="hidden"
+                                      onChange={(e) =>
+                                        handleAddPhotos(item.id, "move-out", e)
+                                      }
+                                    />
+                                  </label>
                                 </div>
                                 {item.moveOutPhotos.length === 0 ? (
                                   <p className="text-[10px] text-slate-500">
@@ -1349,59 +1221,13 @@ export default function Home() {
                                     {item.moveOutPhotos.map((photo) => (
                                       <figure
                                         key={photo.id}
-                                        className="relative overflow-hidden rounded border border-slate-200 bg-white"
+                                        className="overflow-hidden rounded border border-slate-200 bg-white"
                                       >
-                                        {photo.kind === "video" ? (
-                                          <video
-                                            src={photo.dataUrl}
-                                            className="h-12 w-full object-cover"
-                                            controls
-                                            muted
-                                          />
-                                        ) : (
-                                          <img
-                                            src={photo.dataUrl}
-                                            alt="Move-out"
-                                            className="h-12 w-full object-cover cursor-pointer"
-                                            onClick={() =>
-                                              setLightboxMedia({
-                                                url: photo.dataUrl,
-                                                kind: "image",
-                                                title: "Move-out",
-                                              })
-                                            }
-                                          />
-                                        )}
-                                        <figcaption className="px-1 pb-1 text-[9px] text-slate-500">
-                                          {formatDateTimeLabel(photo.addedAt)}
-                                        </figcaption>
-                                        {isWithinMoveOutWindow && (
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setState((prev) => ({
-                                                ...prev,
-                                                items: prev.items.map(
-                                                  (pItem) =>
-                                                    pItem.id === item.id
-                                                      ? {
-                                                          ...pItem,
-                                                          moveOutPhotos:
-                                                            pItem.moveOutPhotos.filter(
-                                                              (p) =>
-                                                                p.id !==
-                                                                photo.id
-                                                            ),
-                                                        }
-                                                      : pItem
-                                                ),
-                                              }));
-                                            }}
-                                            className="absolute right-0 top-0 m-0.5 rounded-full bg-white/80 px-1 text-[9px] text-slate-600 hover:bg-red-500 hover:text-white"
-                                          >
-                                            ✕
-                                          </button>
-                                        )}
+                                        <img
+                                          src={photo.dataUrl}
+                                          alt="Move-out"
+                                          className="h-12 w-full object-cover"
+                                        />
                                       </figure>
                                     ))}
                                   </div>
@@ -1423,9 +1249,9 @@ export default function Home() {
                   )}
                 </div>
               )}
-              </div>
             </div>
           </div>
+        </div>
         )}
 
         {tab === "lease" && (
