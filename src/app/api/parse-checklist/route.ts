@@ -123,13 +123,16 @@ Requirements:
       console.log('📄 Response preview:', text.substring(0, 200));
 
       // Parse the JSON response from Gemini
-      let parsedContent: { items?: unknown };
+      let parsedContent: { items?: unknown[] } = {};
       try {
         // Remove markdown code blocks if present
         const cleanContent = text.replace(/```json\n?|\n?```/g, '').trim();
         console.log('🔍 Attempting to parse JSON...');
-        parsedContent = JSON.parse(cleanContent);
-        console.log('✅ JSON parsed successfully, items:', parsedContent.items?.length || 0);
+        parsedContent = JSON.parse(cleanContent) as { items?: unknown[] };
+        console.log(
+          '✅ JSON parsed successfully, items:',
+          Array.isArray(parsedContent.items) ? parsedContent.items.length : 0
+        );
       } catch (parseError: any) {
         console.error('❌ Failed to parse as JSON:', parseError.message);
         console.error('📄 Raw response:', text);
