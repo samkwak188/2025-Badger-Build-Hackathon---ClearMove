@@ -92,10 +92,64 @@ function dataUrlToBytes(dataUrl: string): {
   return { mimeType, bytes };
 }
 
-async function fileToDataUrl(file: File): Promise<string> {
+async function fileToDataUrl(
+  file: File,
+  normalizeToJpeg = false
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
+    reader.onload = () => {
+      const originalDataUrl = reader.result as string;
+
+      // If normalization is not requested, return the raw data URL
+      if (!normalizeToJpeg) {
+        resolve(originalDataUrl);
+        return;
+      }
+
+      // Normalize to a real JPEG using a canvas, so pdf-lib can always embed it
+      try {
+        const img = new window.Image();
+        img.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.naturalWidth || img.width;
+            canvas.height = img.naturalHeight || img.height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+              console.error(
+                "Canvas 2D context unavailable; falling back to original data URL"
+              );
+              resolve(originalDataUrl);
+              return;
+            }
+            ctx.drawImage(img, 0, 0);
+            const jpegDataUrl = canvas.toDataURL("image/jpeg", 0.9);
+            resolve(jpegDataUrl);
+          } catch (err) {
+            console.error(
+              "Failed to normalize image to JPEG; falling back to original data URL",
+              err
+            );
+            resolve(originalDataUrl);
+          }
+        };
+        img.onerror = (err: any) => {
+          console.error(
+            "Failed to load image for JPEG normalization; falling back to original data URL",
+            err
+          );
+          resolve(originalDataUrl);
+        };
+        img.src = originalDataUrl;
+      } catch (err: any) {
+        console.error(
+          "Unexpected error during JPEG normalization; falling back to original data URL",
+          err
+        );
+        resolve(originalDataUrl);
+      }
+    };
     reader.onerror = (err) => reject(err);
     reader.readAsDataURL(file);
   });
@@ -577,9 +631,13 @@ export default function Home() {
 
     const photos: ChecklistPhoto[] = [];
     for (const file of filesToUse) {
-      const dataUrl = await fileToDataUrl(file);
       const kind: "image" | "video" =
         file.type && file.type.startsWith("video/") ? "video" : "image";
+
+      // For images, normalize to JPEG so pdf-lib can always embed them reliably.
+      // For videos, keep the original data URL.
+      const dataUrl = await fileToDataUrl(file, kind === "image");
+
       photos.push({
         id: createId(),
         phase,
