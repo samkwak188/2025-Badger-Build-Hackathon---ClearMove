@@ -1,5 +1,11 @@
 # 🏠 ClearMove - Your ultimate rent consultant
 
+![Next.js](https://img.shields.io/badge/Next.js-16-black)
+![React](https://img.shields.io/badge/React-19-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![Google Gemini](https://img.shields.io/badge/Google_Gemini-2.5_Flash-green)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
 ClearMove – Evidence, not arguments. Secure your wallet. ClearMove protects your rights as a renter by turning your lease, checklists, and move-in/out photos into organized, shareable evidence—so deposit disputes are decided by facts, not fights.
 
 This project was built for **Badger Build Festival 2025** at **UW–Madison**,  
@@ -8,14 +14,23 @@ hosted by the **Cursor AI Club** and **Badger Blockchain**, and sponsored by:
 
 ![Badger Build Festival winners group photo](./Picture.JPG)
 ![Venture track winners slide showing ClearMove in 3rd place](./Ranks.JPG)
+![Team group photo](./group.JPG)
 
-> Our group won **3rd place out of 92 participants** in the Venture Track and received a **$500 cash prize**.
+Our group won **3rd place out of 92 participants** in the Venture Track and received a **$500 cash prize**.
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black)
-![React](https://img.shields.io/badge/React-19-blue)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
-![Google Gemini](https://img.shields.io/badge/Google_Gemini-2.5_Flash-green)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+## 👥 Team
+
+- **Sam (Changyong) Kwak** (`@samkwak188`)  
+  Workflow design, interface design, and core engineering (image-to-text pipeline, timestamp generation, PDF report generation, checklist parsing).
+
+- **William (Chingwei) Kang** (`@WilliamK112`)  
+  Pitch presentation, core product/idea ideation, and demo video editing.
+
+- **Zhiyuan Jin**  
+  Backend engineering (lease PDF parsing, summary automation, timestamp handling).
+
+- **Jenny Chen**  
+  Presentation, product narrative, and business/market strategy.
 
 ## 🚀 Quick Start
 
